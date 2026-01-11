@@ -3,7 +3,12 @@
 This repository contains the **backend** of the MY-APP project, built using **Flask** and **SQLAlchemy**. It provides a robust API for managing users, authentication, and tasks. The backend is designed to be secure, scalable, and maintainable.
 
 ---
+## 📸 Project Preview
 
+![Preview](https://github.com/niveshbansal07/Task-and-Time-Tracking-App-frontend/blob/main/timetask.png)
+![Preview](https://github.com/niveshbansal07/Task-and-Time-Tracking-App-frontend/blob/main/timetask-2.png)
+
+---
 ## Table of Contents
 
 - Project Overview
