@@ -4,3 +4,5 @@ Flask-JWT-Extended
 PyMySQL
 python-dotenv
 Werkzeug
+gunicorn
+
