@@ -1,4 +1,4 @@
-# MY-APP Backend
+# App Backend
 
 This repository contains the **backend** of the MY-APP project, built using **Flask** and **SQLAlchemy**. It provides a robust API for managing users, authentication, and tasks. The backend is designed to be secure, scalable, and maintainable.
 
