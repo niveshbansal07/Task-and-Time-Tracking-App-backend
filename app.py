@@ -1,8 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Blueprint
 from config import Config
-from models import db, User
+from models import db, User, Task
 from flask_cors import CORS
-from auth import create_access_token
+from auth import create_access_token, jwt_required
+from datetime import datetime, date
 
 
 app = Flask(__name__)
@@ -70,5 +71,134 @@ def login():
     }), 200
 
 
+tasks_bp = Blueprint("tasks", __name__, url_prefix="/api/tasks")
+@tasks_bp.route("", methods=["GET"])
+@jwt_required
+def get_tasks():
+    user_id = request.user_id
+    tasks = Task.query.filter_by(user_id=user_id).order_by(Task.id.desc()).all()
+    return jsonify([t.to_dict() for t in tasks])
+
+@tasks_bp.route("", methods=["POST"])
+@jwt_required
+def create_task():
+    user_id = request.user_id
+    data = request.get_json()
+    name = data.get("name", "").strip()
+
+    if not name:
+        return {"error": "Task name required"}, 400
+
+    task = Task(
+        user_id=user_id,
+        name=name,
+        present_seconds=0,
+        today_seconds=0,
+        status="pending"
+    )
+
+    db.session.add(task)
+    db.session.commit()
+    return jsonify(task.to_dict()), 201
+
+@tasks_bp.route("/<int:task_id>", methods=["PUT"])
+@jwt_required
+def update_task(task_id):
+    user_id = request.user_id
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first_or_404()
+    data = request.get_json()
+
+    ALLOWED_STATUS = {"pending", "in_progress", "success"}
+
+    new_status = data.get("status")
+    if new_status and new_status not in ALLOWED_STATUS:
+        return {"error": "Invalid status"}, 400
+
+    if "name" in data:
+        task.name = data["name"]
+
+    if new_status:
+        task.status = new_status
+
+    if "present_seconds" in data:
+        task.present_seconds = int(data["present_seconds"])
+
+    if "today_seconds" in data:
+        task.today_seconds = int(data["today_seconds"])
+        task.today_date = date.today()
+
+    db.session.commit()
+    return jsonify(task.to_dict())
+
+
+@tasks_bp.route("/<int:task_id>", methods=["DELETE"])
+@jwt_required
+def delete_task(task_id):
+    user_id = request.user_id
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first_or_404()
+    db.session.delete(task)
+    db.session.commit()
+    return {"message": "Task deleted"}
+
+
+@tasks_bp.route("/<int:task_id>/start", methods=["POST"])
+@jwt_required
+def start_task(task_id):
+    user_id = request.user_id
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first_or_404()
+
+    if task.running:
+        return jsonify(task.to_dict())
+
+    running_task = Task.query.filter_by(
+        user_id=user_id,
+        running=True
+    ).first()
+
+    if running_task:
+        return {"message": "Another task is already running"}, 400
+
+    task.running = True 
+    task.started_at = datetime.utcnow()
+
+    if task.today_date != date.today():
+        task.today_seconds = 0
+        task.today_date = date.today()
+
+    task.status = "in_progress"
+    db.session.commit()
+    return jsonify(task.to_dict())
+
+@tasks_bp.route("/<int:task_id>/stop", methods=["POST"])
+@jwt_required
+def stop_task(task_id):
+    user_id = request.user_id
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first_or_404()
+
+    if not task.running or not task.started_at:
+        return jsonify(task.to_dict())
+
+    now = datetime.utcnow()
+    elapsed = int((now - task.started_at).total_seconds())
+
+    task.present_seconds += elapsed
+    # task.today_seconds += elapsed
+    if task.today_date == date.today():
+        task.today_seconds += elapsed
+    else:
+        task.today_seconds = elapsed
+        task.today_date = date.today()
+
+    task.running = False
+    task.started_at = None
+
+    db.session.commit()
+    return jsonify(task.to_dict())
+
+
+app.register_blueprint(tasks_bp)
+
+
 if __name__ == "__main__":
     app.run(debug=True)
+  
