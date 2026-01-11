@@ -17,6 +17,12 @@ CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 def health():
     return {"status": "ok"}
 
+# db test route
+@app.route("/api/db-test")
+def db_test():
+    db.session.execute("SELECT 1")
+    return {"status": "db connected"}
+
 # signup
 @app.route("/api/auth/signup", methods=["POST"])
 def signup():
