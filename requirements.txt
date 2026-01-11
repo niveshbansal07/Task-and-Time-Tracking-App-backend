@@ -1,8 +1,7 @@
 Flask
 Flask-SQLAlchemy
 Flask-JWT-Extended
+flask-cors
 PyMySQL
 python-dotenv
-Werkzeug
 gunicorn
-flask-cors
