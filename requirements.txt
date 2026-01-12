@@ -5,3 +5,4 @@ flask-cors
 PyMySQL
 python-dotenv
 gunicorn
+cryptography==46.0.3
