@@ -15,6 +15,10 @@ app.config.from_object(Config)
 db.init_app(app)
 CORS(app, origins=["https://task-and-time-tracking-app-frontend.vercel.app"], supports_credentials=True)
 
+@app.route("/")
+def home():
+    return {"status": "Backend working"}
+    
 # test route
 @app.route("/api/health")
 def health():
