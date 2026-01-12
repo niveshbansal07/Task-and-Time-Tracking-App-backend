@@ -4,6 +4,7 @@ from models import db, User, Task
 from flask_cors import CORS
 from auth import create_access_token, jwt_required
 from datetime import datetime, date
+from sqlalchemy import text
 import pymysql
 pymysql.install_as_MySQLdb()
 
