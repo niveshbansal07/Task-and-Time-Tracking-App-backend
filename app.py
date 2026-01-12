@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 db.init_app(app)
-CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+CORS(app, origins=["https://task-and-time-tracking-app-frontend.vercel.app/"], supports_credentials=True)
 
 # test route
 @app.route("/api/health")
@@ -22,8 +22,11 @@ def health():
 # db test route
 @app.route("/api/db-test")
 def db_test():
-    db.session.execute("SELECT 1")
-    return {"status": "db connected"}
+    try:
+        db.session.execute(text("SELECT 1"))
+        return {"status": "db connected"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
 
 # signup
 @app.route("/api/auth/signup", methods=["POST"])
