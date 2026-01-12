@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 db.init_app(app)
-CORS(app, origins=["https://task-and-time-tracking-app-frontend.vercel.app/"], supports_credentials=True)
+CORS(app, origins=["https://task-and-time-tracking-app-frontend.vercel.app"], supports_credentials=True)
 
 # test route
 @app.route("/api/health")
